@@ -2,6 +2,8 @@ import os
 import pickle
 from time import sleep
 
+from rich import print
+
 from libs import WebScraping
 
 
@@ -90,10 +92,11 @@ class FactoryScraper(WebScraping):
 
     def __accept_orders__(self) -> None:
         """Accept pending orders."""
+
         selectors = {
             "submit": ".col-xs-12.order-review .complete-order-btn-container button",
-            "modal": ".modal-content .complete-modal",
-            "modal_btn": "#completeOrderSubmitBtn button[type='submit']",
+            "upload": "input#uploadScreenShotOne[type='file']",
+            "complete_order": "#completeOrderSubmitBtn button[type='submit']",
         }
 
         for title, link in self.extracted_orders.items():
@@ -105,10 +108,10 @@ class FactoryScraper(WebScraping):
             self.click_js(selectors["submit"])
 
             # Wait for modal
-            try:
-                self.implicit_wait(selectors["modal"])
-            except:
-                print("Modal was not found: increment the waiting time")
+            sleep(3)
+
+            input("\nPress Enter to continue...")
+            print("[bold green]Order completed[/bold green]")
 
     def automate_orders(self) -> None:
         """automate accepting orders."""
