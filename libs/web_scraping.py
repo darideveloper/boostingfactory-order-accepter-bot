@@ -466,18 +466,13 @@ class WebScraping ():
         # If the loop completes without finding the element, log an error
         self.logger.error(f"Timed out: Element '{selector}' not found on the page.")
 
-    def implicit_wait(self, selector, refresh: bool = False):
+    def implicit_wait(self, selector):
         try:
             WebDriverWait(self.get_browser(), 20).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, selector))
             )
         except Exception:
-            if refresh is False:
-                raise Exception(
-                    "Time out exeded. The element {} is until in the page".format(selector))
-            else:
-                self.get_browser().refresh()
-                time.sleep(3)
+            raise Exception("Time out exeded. The element {} is until in the page".format(selector))
 
     def wait_die(self, selector, time_out=10):
         """

@@ -22,6 +22,8 @@ class FactoryScraper(WebScraping):
         self.username = username
         self.password = password
 
+        self.extracted_orders = {}
+
     def __login__(self) -> None:
         """checks if session cookies exists
 
@@ -68,11 +70,11 @@ class FactoryScraper(WebScraping):
         self.set_page("https://www.boostingfactory.com/profile")
 
     def __loop_orders__(self) -> None:
-        """Loop through orders and accept them."""
+        """Loop through orders and stores it to be processed later."""
 
         selectors = {
             "orders": "div#ongoingOrders div.single-order",
-            "order_button": "a",
+            "order_link": "a",
             "order_title": "h3",
         }
 
@@ -80,9 +82,33 @@ class FactoryScraper(WebScraping):
 
         for order in range(0, len(orders)):
             title = self.get_text(orders[order], selectors["order_title"])
-            print(f"Accepting {title}")
 
-            self.click_js(selectors["order_button"])
+            link = self.get_attrib("href", orders[order], selectors["order_link"])
+
+            # Append extracted orders
+            self.extracted_orders[title] = link
+
+    def __accept_orders__(self) -> None:
+        """Accept pending orders."""
+        selectors = {
+            "submit": ".col-xs-12.order-review .complete-order-btn-container button",
+            "modal": ".modal-content .complete-modal",
+            "modal_btn": "#completeOrderSubmitBtn button[type='submit']",
+        }
+
+        for title, link in self.extracted_orders.items():
+            print(f"Accepting: {title}...")
+
+            self.set_page(link)
+
+            # Wait a few seconds to load
+            self.click_js(selectors["submit"])
+
+            # Wait for modal
+            try:
+                self.implicit_wait(selectors["modal"])
+            except:
+                print("Modal was not found: increment the waiting time")
 
     def automate_orders(self) -> None:
         """automate accepting orders."""
@@ -96,5 +122,8 @@ class FactoryScraper(WebScraping):
         # Select 'Current order' tab
         self.click_js(selectors["current_orders"])
 
-        # Loop available orders and automatic accept them.
+        # Loop available orders
         self.__loop_orders__()
+
+        # Accept pending orders
+        self.__accept_orders__()
