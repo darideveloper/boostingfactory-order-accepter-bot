@@ -96,5 +96,5 @@ class FactoryScraper(WebScraping):
         # Select 'Current order' tab
         self.click_js(selectors["current_orders"])
 
-        # Loop available orders and automatic accept them.
+        # Loop Orders
         self.__loop_orders__()
