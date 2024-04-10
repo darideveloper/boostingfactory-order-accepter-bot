@@ -84,7 +84,7 @@ class FactoryScraper(WebScraping):
 
             self.click_js(selectors["order_button"])
 
-    def automate_orders(self):
+    def automate_orders(self) -> None:
         """automate accepting orders."""
 
         selectors = {
