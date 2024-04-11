@@ -110,8 +110,9 @@ class FactoryScraper(WebScraping):
 
         Returns: boolean
         """
-        for order_title in self.keywords:
-            if title == order_title:
+        
+        for keyword in self.keywords:
+            if keyword.strip() in title:
                 return True
         return False
 
