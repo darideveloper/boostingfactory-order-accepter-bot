@@ -85,6 +85,8 @@ class FactoryScraper(WebScraping):
                 '.order-detail-btn .btn-for-bright",
             "order_link": "a",
             "order_title": "h3",
+            "order_accept": '',
+            "order_ok": '',
         }
         
         # Move to orders tab
@@ -94,18 +96,25 @@ class FactoryScraper(WebScraping):
 
         orders = self.get_elems(selectors["orders"])
 
+        orders_accepted = 0
         for order in range(0, len(orders)):
-            title = self.get_text(orders[order], selectors["order_title"])
-
-            link = self.get_attrib("href", orders[order], selectors["order_link"])
-
+            
+            # Validate order title
+            selector_order = f"{selectors['orders']}:nth-child({order+1})"
+            title = self.get_text(selector_order)
             target = self.__filter__(title)
 
             if not target:
                 continue
 
-            # Append extracted orders
-            self.extracted_orders[title] = link
+            # Accept order
+            self.click_js(f"{selector_order} {selectors['order_accept']}")
+            self.refresh_selenium()
+            self.click_js(f"{selector_order} {selectors['order_ok']}")
+            print(f"Order {title} accepted")
+            orders_accepted += 1
+            
+        print(f"Total orders accepted: {orders_accepted}")
 
     def __filter__(self, title) -> bool:
         """Filter keywords from order titles.
@@ -117,29 +126,9 @@ class FactoryScraper(WebScraping):
         """
         
         for keyword in self.keywords:
-            if keyword.strip() in title:
+            if keyword.strip().lower() == title.strip().lower():
                 return True
         return False
-
-    def __accept_orders__(self) -> None:
-        """Accept pending orders."""
-
-        selectors = {
-            "submit": ".col-xs-12.order-review .complete-order-btn-container button",
-        }
-
-        for title, link in self.extracted_orders.items():
-            print(f"Accepting: {title}...")
-
-            self.set_page(link)
-
-            # Wait a few seconds to load
-            self.click_js(selectors["submit"])
-
-            # Wait for modal
-            sleep(3)
-
-            print(f"[bold green]Order {title} completed[/bold green]")
 
     def automate_orders(self) -> None:
         """automate accepting orders."""
@@ -153,8 +142,5 @@ class FactoryScraper(WebScraping):
         # Select 'Current order' tab
         self.click_js(selectors["current_orders"])
 
-        # Loop available orders
+        # Loop available orders and accept by title
         self.__loop_orders__()
-
-        # Accept pending orders
-        self.__accept_orders__()
