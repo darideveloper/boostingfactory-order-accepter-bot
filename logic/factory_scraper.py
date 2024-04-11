@@ -1,9 +1,7 @@
 import os
 import pickle
 from time import sleep
-
 from rich import print
-
 from libs import WebScraping
 
 
@@ -16,7 +14,7 @@ class FactoryScraper(WebScraping):
         args:
             username: (str) username from .env
             password: (str) passsword from .env
-            keywords: (list, str) filter title for the targeted orders.
+            keywords: (list, str) filter titles for the targeted orders.
             headless: (bool) enables headless mode.
         """
 
@@ -81,11 +79,18 @@ class FactoryScraper(WebScraping):
         """Loop through orders and stores it to be processed later."""
 
         selectors = {
-            "orders": "div#availableOrders div.single-order",  # change for #ongoingOrders for testing
-            "order_button": "div#availableOrders div.single-order .order-detail-btn .btn-for-bright",  # change for #ongoingOrders for testing
+            "orders_tab": '.orders .nav.nav-tabs > li:first-child a',
+            "orders": "div#availableOrders div.single-order",
+            "order_button": "div#availableOrders div.single-order' \
+                '.order-detail-btn .btn-for-bright",
             "order_link": "a",
             "order_title": "h3",
         }
+        
+        # Move to orders tab
+        for _ in range(3):
+            self.click_js(selectors["orders_tab"])
+            self.refresh_selenium()
 
         orders = self.get_elems(selectors["orders"])
 
@@ -96,7 +101,7 @@ class FactoryScraper(WebScraping):
 
             target = self.__filter__(title)
 
-            if target is False:
+            if not target:
                 continue
 
             # Append extracted orders

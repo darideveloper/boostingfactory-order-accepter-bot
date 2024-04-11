@@ -1,1 +1,0 @@
-from logic.factory_scraper import FactoryScraper

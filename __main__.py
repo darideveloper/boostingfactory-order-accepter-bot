@@ -8,12 +8,11 @@ current_folder = os.path.dirname(__file__)
 csv_path = os.path.join(current_folder, "keywords.csv")
 with open(csv_path, "r") as file:
     reader = csv.reader(file)
-    KEYWORDS = list(reader)
+    KEYWORDS = list(map(lambda row: row[0], reader))
 
 # Read .env's configuration
 load_dotenv()
 HEADLESS = os.getenv("SHOW_BROWSER") != "True"
-KEYWORDS = os.getenv("KEYWORDS")
 USERNAME = os.getenv("USERNAME")
 PASSWORD = os.getenv("PASSWORD")
 
