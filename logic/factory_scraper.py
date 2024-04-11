@@ -8,13 +8,16 @@ from libs import WebScraping
 
 
 class FactoryScraper(WebScraping):
-    def __init__(self, username: str, password: str, headless: bool = False) -> None:
+    def __init__(
+        self, username: str, password: str, keywords: list, headless: bool = False
+    ) -> None:
         """starts chrome and initializes the scraper
 
         args:
-            headless: (bool) enables headless mode.
             username: (str) username from .env
             password: (str) passsword from .env
+            keywords: (list, str) filter title for the targeted orders.
+            headless: (bool) enables headless mode.
         """
 
         # start scraper class
@@ -23,6 +26,9 @@ class FactoryScraper(WebScraping):
         # credentials
         self.username = username
         self.password = password
+
+        # Title filter
+        self.keywords = keywords
 
         self.extracted_orders = {}
 
@@ -75,7 +81,8 @@ class FactoryScraper(WebScraping):
         """Loop through orders and stores it to be processed later."""
 
         selectors = {
-            "orders": "div#ongoingOrders div.single-order",
+            "orders": "div#availableOrders div.single-order",  # change for #ongoingOrders for testing
+            "order_button": "div#availableOrders div.single-order .order-detail-btn .btn-for-bright",  # change for #ongoingOrders for testing
             "order_link": "a",
             "order_title": "h3",
         }
@@ -87,16 +94,32 @@ class FactoryScraper(WebScraping):
 
             link = self.get_attrib("href", orders[order], selectors["order_link"])
 
+            target = self.__filter__(title)
+
+            if target is False:
+                continue
+
             # Append extracted orders
             self.extracted_orders[title] = link
+
+    def __filter__(self, title) -> bool:
+        """Filter keywords from order titles.
+
+        Args:
+            title: (str) title keyword
+
+        Returns: boolean
+        """
+        for order_title in self.keywords:
+            if title == order_title:
+                return True
+        return False
 
     def __accept_orders__(self) -> None:
         """Accept pending orders."""
 
         selectors = {
             "submit": ".col-xs-12.order-review .complete-order-btn-container button",
-            "upload": "input#uploadScreenShotOne[type='file']",
-            "complete_order": "#completeOrderSubmitBtn button[type='submit']",
         }
 
         for title, link in self.extracted_orders.items():
@@ -110,8 +133,7 @@ class FactoryScraper(WebScraping):
             # Wait for modal
             sleep(3)
 
-            input("\nPress Enter to continue...")
-            print("[bold green]Order completed[/bold green]")
+            print(f"[bold green]Order {title} completed[/bold green]")
 
     def automate_orders(self) -> None:
         """automate accepting orders."""
