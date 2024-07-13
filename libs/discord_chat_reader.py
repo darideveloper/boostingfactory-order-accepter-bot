@@ -4,11 +4,11 @@ from time import sleep
 import pickle
 from rich import print
 
-from web_scraping import WebScraping
+from libs.web_scraping import WebScraping
 from selenium.webdriver.remote.webelement import WebElement
 
 
-class DiscordchannelReader ():
+class DiscordChatReader ():
     
     def __init__(self, scraper: WebScraping, server_link: str, channels_names: list,
                  user: str, password: str) -> None:
@@ -25,6 +25,7 @@ class DiscordchannelReader ():
         self.channels_names = channels_names
         self.user = user
         self.password = password
+        self.login_page = "https://discord.com/login"
         
         # Saved data
         self.saved_messages = []
@@ -34,7 +35,7 @@ class DiscordchannelReader ():
         current_folder = os.path.dirname(os.path.abspath(__file__))
         parent_folder = os.path.dirname(current_folder)
         cookies_folder = os.path.join(parent_folder, "cookies")
-        self.cookies_file = os.path.join(cookies_folder, "discord_channel_reader.pkl")
+        self.cookies_file = os.path.join(cookies_folder, "discord_chat_reader.pkl")
         
     def __manual_login__(self):
         """ Manual login with user and password, and update cookies """
@@ -45,6 +46,7 @@ class DiscordchannelReader ():
             "password": '[name="password"]',
             "submit": "button[type='submit']",
         }
+            
         self.scraper.send_data(selectors["username"], self.user)
         self.scraper.send_data(selectors["password"], self.password)
         self.scraper.click(selectors["submit"])
@@ -59,7 +61,7 @@ class DiscordchannelReader ():
             quit()
         
         # Save cookies
-        cookies = self.scraper.get_browser().get_cookies()
+        cookies = self.scraper.driver.get_cookies()
         with open(self.cookies_file, "wb") as file:
             pickle.dump(cookies, file)
             
@@ -148,13 +150,17 @@ class DiscordchannelReader ():
         print(f"Login in Discord with user '{self.user}'...")
         
         # Load server page
-        self.scraper.set_page(self.server_link)
+        self.scraper.set_page(self.login_page)
         sleep(5)
         self.scraper.refresh_selenium()
         
         # First login
         if not os.path.exists(self.cookies_file):
             self.__manual_login__()
+            return None
+        
+        # Delete old cookies
+        self.scraper.driver.delete_all_cookies()
         
         # Load cookies
         cookies = pickle.load(open(self.cookies_file, "rb"))
@@ -174,6 +180,11 @@ class DiscordchannelReader ():
         """ Wait for new messages, valdiate them and return
         """
         
+        # Load server page
+        self.scraper.set_page(self.server_link)
+        sleep(5)
+        self.scraper.refresh_selenium()
+        
         # Get and validate channels
         channels = self.__get_channels__()
         for channels_name, channel_elem in channels.items():
@@ -182,25 +193,3 @@ class DiscordchannelReader ():
             self.__load_channel__(channel_elem)
             self.__get_new_messages__()
             print()
-
-
-if __name__ == '__main__':
-    
-    from dotenv import load_dotenv
-    load_dotenv()
-    
-    SERVER_LINK = os.getenv("DISCORD_SERVER_LINK")
-    CHANNELS_NAMES = os.getenv("DISCORD_CHANNELS_NAMES").split(",")
-    USER = os.getenv("DISCORD_USER")
-    PASSWORD = os.getenv("DISCORD_PASSWORD")
-    
-    scraper = WebScraping(headless=False)
-    discord_channel_reader = DiscordchannelReader(
-        scraper=scraper,
-        server_link=SERVER_LINK,
-        channels_names=CHANNELS_NAMES,
-        user=USER,
-        password=PASSWORD
-    )
-    discord_channel_reader.login()
-    discord_channel_reader.wait_for_messages()

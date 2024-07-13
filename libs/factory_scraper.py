@@ -4,7 +4,7 @@ from time import sleep
 import pickle
 from rich import print
 
-from web_scraping import WebScraping
+from libs.web_scraping import WebScraping
 
 
 class FactoryScraper():

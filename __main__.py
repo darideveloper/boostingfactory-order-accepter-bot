@@ -20,10 +20,15 @@ HEADLESS = os.getenv("SHOW_BROWSER") != "True"
 USERNAME = os.getenv("USERNAME_SCRAPER")
 PASSWORD = os.getenv("PASSWORD")
 WAIT_TIME = int(os.getenv("WAIT_TIME"))
-CHANNELS_NAMES = os.getenv("CHANNELS_NAMES").split(",")
-SERVER_LINK = os.getenv("SERVER_LINK")
+CHANNELS_NAMES = os.getenv("DISCORD_CHANNELS_NAMES").split(",")
+DISCORD_SERVER_LINK = os.getenv("DISCORD_SERVER_LINK")
 
 if __name__ == "__main__":
+    
+    # Get windows username
+    username = os.getlogin()
+    chrome_data_folder = f"C:\\Users\\{username}\\AppData"
+    chrome_data_folder += "\\Local\\Google\\Chrome\\User Data"
     
     # Create cookies folder
     current_folder = os.path.dirname(__file__)
@@ -31,7 +36,7 @@ if __name__ == "__main__":
     os.makedirs(cookies_folder, exist_ok=True)
     
     # Initialize chrome
-    scraper = WebScraping(headless=HEADLESS)
+    scraper = WebScraping(headless=HEADLESS, chrome_folder=chrome_data_folder)
     
     # Initialize and login factory scraper
     factory_scraper = FactoryScraper(
@@ -50,7 +55,6 @@ if __name__ == "__main__":
         channels_names=CHANNELS_NAMES
     )
     discord_chat_reader.wait_for_messages()
-    
     
     # Accept orders
     factory_scraper.automate_orders()
