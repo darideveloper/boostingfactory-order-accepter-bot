@@ -1,0 +1,7 @@
+pyrightconfig.json
+__pycache__/
+.mypy_cache/
+.env
+cookies.pkl
+.flake8
+cookies
