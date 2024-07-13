@@ -1,7 +1,4 @@
-import os
 from time import sleep
-
-import pickle
 from rich import print
 
 from libs.web_scraping import WebScraping
@@ -10,8 +7,6 @@ from libs.web_scraping import WebScraping
 class FactoryScraper():
     def __init__(
         self,
-        username: str,
-        password: str,
         keywords: list,
         scraper: WebScraping,
         wait_time: int = 60,
@@ -27,10 +22,6 @@ class FactoryScraper():
         
         self.scraper = scraper
 
-        # credentials
-        self.username = username
-        self.password = password
-
         # Title filter
         self.keywords = keywords
         
@@ -39,86 +30,7 @@ class FactoryScraper():
 
         self.extracted_orders = {}
         
-        current_folder = os.path.dirname(os.path.abspath(__file__))
-        project_folder = os.path.dirname(current_folder)
-        cookies_folder = os.path.join(project_folder, "cookies")
-        self.cookies_file = os.path.join(cookies_folder, "factory_scraper.pkl")
-
-    def login(self) -> None:
-        """checks if session cookies exists
-
-        if the cookies are found load them
-        ifnot perfoms login.
-        """
-
-        self.scraper.set_page("https://www.boostingfactory.com/login")
-
-        sleep(3)
-        self.scraper.refresh_selenium()
-
-        selectors = {
-            "username": "#uName",
-            "password": "#uPassword",
-            "submit": "button[type='submit']",
-        }
-
-        # search for local cookies
-        if os.path.exists("cookies.pkl"):
-            # if cookies are found load them
-            with open("cookies.pkl", "rb") as file:
-                cookies = pickle.load(file)
-                
-                self.__load_cookies__()
-                self.scraper.refresh_selenium()
-                
-            # Validate login cookies
-            current_page = self.scraper.driver.current_url
-            if "login" in current_page:
-                print("Login failed. Posible cookies expired. Traying again...")
-                
-                # Delete cookies file
-                if os.path.exists(self.cookies_file):
-                    os.remove(self.cookies_file)
-                
-                # Try login again
-                self.login()
-                
-                return None
-            else:
-                print("Login successful.")
-                return None
-                        
-        # if cookies doesn't exists do login
-        username = self.scraper.get_elem(selectors["username"])
-        username.send_keys(self.username)
-
-        password = self.scraper.get_elem(selectors["password"])
-        password.send_keys(self.password)
-
-        self.scraper.click_js(selectors["submit"])
-        
-        # Validate login credentials
-        current_page = self.scraper.driver.current_url
-        if "login" in current_page:
-            print("Login factory failed. Check credentials and try again.")
-            quit()
-        else:
-            print("Login successful.")
-
-        # store cookies
-        cookies = self.scraper.get_browser().get_cookies()
-        with open(self.cookies_file, "wb") as file:
-            pickle.dump(cookies, file)
-
-    def __load_cookies__(self) -> None:
-        """Load cookies into the current session."""
-        
-        cookies = pickle.load(open(self.cookies_file, "rb"))
-        for cookie in cookies:
-            self.scraper.driver.add_cookie(cookie)
-
-        self.scraper.set_page("https://www.boostingfactory.com/profile")
-        self.zoom(50)
+        self.home_page = "https://www.boostingfactory.com/profile"
 
     def __loop_orders__(self) -> None:
         """Loop through orders and stores it to be processed later."""
@@ -175,13 +87,27 @@ class FactoryScraper():
             if keyword.strip().lower() == str(title).strip().lower():
                 return True
         return False
-
-    def __retrieve_new_orders__(self) -> None:
-        """Search for new orders."""
-        self.scraper.set_page("https://www.boostingfactory.com/profile")
+        
+    def __validate_login__(self):
+        """ Validate if user is logged in """
+        
+        self.scraper.set_page(self.home_page)
+        current_url = self.scraper.driver.current_url
+        if "/login" in current_url:
+            print("You need to login in Discord.")
+            input("Please login and press any key to continue...")
+            
+            # Try to load main pae again
+            self.scraper.set_page(self.server_link)
+            self.refresh_selenium()
+            self.__validate_login__()
+        else:
+            print("Logged in Discord.")
 
     def automate_orders(self) -> None:
         """automate accepting orders."""
+        
+        self.validate_login()
 
         while True:
 

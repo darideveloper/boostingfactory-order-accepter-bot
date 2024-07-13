@@ -20,10 +20,12 @@ HEADLESS = os.getenv("SHOW_BROWSER") != "True"
 USERNAME = os.getenv("USERNAME_SCRAPER")
 PASSWORD = os.getenv("PASSWORD")
 WAIT_TIME = int(os.getenv("WAIT_TIME"))
-CHANNELS_NAMES = os.getenv("DISCORD_CHANNELS_NAMES").split(",")
+DISCORD_CHANNELS_NAMES = os.getenv("DISCORD_CHANNELS_NAMES").split(",")
 DISCORD_SERVER_LINK = os.getenv("DISCORD_SERVER_LINK")
 
 if __name__ == "__main__":
+    
+    print("Starting chrome...")
     
     # Get windows username
     username = os.getlogin()
@@ -36,25 +38,26 @@ if __name__ == "__main__":
     os.makedirs(cookies_folder, exist_ok=True)
     
     # Initialize chrome
-    scraper = WebScraping(headless=HEADLESS, chrome_folder=chrome_data_folder)
-    
-    # Initialize and login factory scraper
-    factory_scraper = FactoryScraper(
-        username=USERNAME,
-        password=PASSWORD,
-        keywords=KEYWORDS,
-        wait_time=WAIT_TIME,
-        scraper=scraper
+    scraper = WebScraping(
+        headless=HEADLESS,
+        chrome_folder=chrome_data_folder,
+        start_killing=True,
     )
-    factory_scraper.login()
     
     # Wait for new valid messages in discord
     discord_chat_reader = DiscordChatReader(
         scraper=scraper,
-        server_link=SERVER_LINK,
-        channels_names=CHANNELS_NAMES
+        server_link=DISCORD_SERVER_LINK,
+        channels_names=DISCORD_CHANNELS_NAMES
     )
     discord_chat_reader.wait_for_messages()
+    
+    # Initialize and login factory scraper
+    factory_scraper = FactoryScraper(
+        keywords=KEYWORDS,
+        wait_time=WAIT_TIME,
+        scraper=scraper
+    )
     
     # Accept orders
     factory_scraper.automate_orders()
