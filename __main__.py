@@ -44,21 +44,23 @@ if __name__ == "__main__":
         start_killing=True,
     )
     
-    # Initialize and login factory scraper
+    # Initialize scrapers
     factory_scraper = FactoryScraper(
         keywords=KEYWORDS,
         scraper=scraper,
     )
-    factory_scraper.validate_login()
-    
-    # Wait for new valid messages in discord
     discord_chat_reader = DiscordChatReader(
         scraper=scraper,
         server_link=DISCORD_SERVER_LINK,
         channels_names=DISCORD_CHANNELS_NAMES,
         wait_time=WAIT_TIME,
     )
-    discord_chat_reader.wait_for_messages()
     
-    # Accept orders
-    factory_scraper.loop_orders()
+    # Main loop
+    while True:    
+        # Validate login in factory
+        factory_scraper.validate_login()
+        # Wait for messages
+        discord_chat_reader.wait_for_messages()
+        # Accept orders
+        factory_scraper.loop_orders()
