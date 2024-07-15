@@ -39,6 +39,13 @@ class DiscordChatReader ():
             keywords_reader = csv.reader(file)
             self.keywords = list(map(lambda row: row[0].lower(), keywords_reader))
             
+    def __load_page__(self):
+        """ Load main page """
+        
+        self.scraper.set_page(self.server_link)
+        sleep(5)
+        self.scraper.refresh_selenium()
+            
     def __get_channels__(self) -> dict[str, WebElement]:
         """ Load specific server and get channels """
         
@@ -150,14 +157,12 @@ class DiscordChatReader ():
             
         return new_messages
     
-    def __validate_login__(self):
+    def validate_login(self):
         """ Validate if user is logged in """
         
         print("Validating Discord login...")
                 
-        self.scraper.set_page(self.server_link)
-        sleep(5)
-        self.scraper.refresh_selenium()
+        self.__load_page__()
         current_url = self.scraper.driver.current_url
         if "/login" in current_url:
             print("Discord session expired. Login again in Chrome.")
@@ -171,8 +176,9 @@ class DiscordChatReader ():
         """ Wait for new messages, valdiate them and return
         """
         
-        # Load server page and validate login
-        self.__validate_login__()
+        print("\nWaiting for messages...")
+        
+        self.__load_page__()
         
         messages_found = False
         while not messages_found:

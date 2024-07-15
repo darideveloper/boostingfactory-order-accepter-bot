@@ -25,15 +25,20 @@ class FactoryScraper():
         self.extracted_orders = {}
         
         self.home_page = "https://www.boostingfactory.com/profile"
+        
+    def __load_page__(self):
+        """ Load main page """
+        
+        self.scraper.set_page(self.home_page)
+        sleep(5)
+        self.scraper.refresh_selenium()
 
     def loop_orders(self) -> None:
         """Loop through orders and stores it to be processed later."""
         
         print("\nLooping through orders...")
         
-        self.scraper.set_page(self.home_page)
-        sleep(5)
-        self.scraper.refresh_selenium()
+        self.__load_page__()
 
         selectors = {
             "orders_tab": ".orders .nav.nav-tabs > li:first-child a",
@@ -93,9 +98,7 @@ class FactoryScraper():
         
         print("Validating Boostingfactory login...")
                 
-        self.scraper.set_page(self.home_page)
-        sleep(5)
-        self.scraper.refresh_selenium()
+        self.__load_page__()
         current_url = self.scraper.driver.current_url
         if "/login" in current_url:
             print("Boostingfactory not logged in. Login again in Chrome.")
