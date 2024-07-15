@@ -29,6 +29,8 @@ class FactoryScraper():
     def loop_orders(self) -> None:
         """Loop through orders and stores it to be processed later."""
         
+        print("\nLooping through orders...")
+        
         self.scraper.set_page(self.home_page)
         sleep(5)
         self.scraper.refresh_selenium()
