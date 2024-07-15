@@ -9,30 +9,24 @@ class FactoryScraper():
         self,
         keywords: list,
         scraper: WebScraping,
-        wait_time: int = 60,
     ) -> None:
         """starts chrome and initializes the scraper
 
         args:
-            username: (str) username from .env
-            password: (str) passsword from .env
             keywords: (list, str) filter titles for the targeted orders.
-            headless: (bool) enables headless mode.
+            scraper: (WebScraping) instance of the scraper
         """
         
         self.scraper = scraper
 
         # Title filter
         self.keywords = keywords
-        
-        # Refresh time
-        self.wait_time = wait_time
 
         self.extracted_orders = {}
         
         self.home_page = "https://www.boostingfactory.com/profile"
 
-    def __loop_orders__(self) -> None:
+    def loop_orders(self) -> None:
         """Loop through orders and stores it to be processed later."""
 
         selectors = {
@@ -88,32 +82,19 @@ class FactoryScraper():
                 return True
         return False
         
-    def __validate_login__(self):
+    def validate_login(self):
         """ Validate if user is logged in """
         
+        print("Validating Boostingfactory login...")
+                
         self.scraper.set_page(self.home_page)
+        sleep(5)
+        self.scraper.refresh_selenium()
         current_url = self.scraper.driver.current_url
         if "/login" in current_url:
-            print("You need to login in Discord.")
-            input("Please login and press any key to continue...")
+            print("Boostingfactory not logged in. Login again in Chrome.")
+            quit()
             
-            # Try to load main pae again
-            self.scraper.set_page(self.server_link)
-            self.refresh_selenium()
-            self.__validate_login__()
-        else:
-            print("Logged in Discord.")
-
-    def automate_orders(self) -> None:
-        """automate accepting orders."""
-        
-        self.validate_login()
-
-        while True:
-
-            # Loop available orders and accept by title
-            self.__loop_orders__()
-
-            # Wait 1 minute
-            print(f"waiting {self.wait_time} milliseconds")
-            sleep(self.wait_time / 1000)
+        print("Logged in Boostingfactory.")
+        sleep(5)
+        self.scraper.refresh_selenium()
