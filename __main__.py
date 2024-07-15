@@ -56,10 +56,12 @@ if __name__ == "__main__":
         wait_time=WAIT_TIME,
     )
     
+    # Validate login in factory
+    factory_scraper.validate_login()
+    discord_chat_reader.validate_login()
+    
     # Main loop
-    while True:    
-        # Validate login in factory
-        factory_scraper.validate_login()
+    while True:
         # Wait for messages
         discord_chat_reader.wait_for_messages()
         # Accept orders
