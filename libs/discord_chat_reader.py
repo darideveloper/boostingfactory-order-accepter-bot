@@ -72,7 +72,7 @@ class DiscordChatReader ():
             channel_elem (WebElement): channel element
         """
         
-        print(f"Loading channel '{channel_name}'...")
+        print(f"\nLoading channel '{channel_name}'...")
         
         # Open chat
         channel_elem.click()
@@ -174,7 +174,8 @@ class DiscordChatReader ():
         # Load server page and validate login
         self.__validate_login__()
         
-        while True:
+        messages_found = False
+        while not messages_found:
         
             # Get and validate channels
             channels = self.__get_channels__()
@@ -184,5 +185,6 @@ class DiscordChatReader ():
                 self.__load_channel__(channels_name, channel_elem)
                 new_messages = self.__get_new_messages__(channels_name)
                 if new_messages:
+                    messages_found = True
                     sleep(self.wait_time)
                     break

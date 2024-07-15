@@ -28,6 +28,10 @@ class FactoryScraper():
 
     def loop_orders(self) -> None:
         """Loop through orders and stores it to be processed later."""
+        
+        self.scraper.set_page(self.home_page)
+        sleep(5)
+        self.scraper.refresh_selenium()
 
         selectors = {
             "orders_tab": ".orders .nav.nav-tabs > li:first-child a",
