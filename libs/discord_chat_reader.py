@@ -30,6 +30,7 @@ class DiscordChatReader ():
         
         # Saved data
         self.saved_messages = []
+        self.order_ids = []
             
     def __load_page__(self):
         """ Load main page """
@@ -102,20 +103,13 @@ class DiscordChatReader ():
         
         return messages
     
-    def __get_new_messages__(self, channels_name: str) -> list[str]:
-        """ Validate new messages and return them
-        
-        Args:
-            channels_name (str): channel name
-        
-        Returns:
-            list[str]: new messages found
+    def __save_new_order_ids__(self):
+        """ Validate new messages and return their order ids
         """
         
         print("\tReading messages...")
                 
         # Get and validate each message
-        new_messages = []
         messages = self.__get_messages__()
         for message in messages:
             
@@ -138,17 +132,20 @@ class DiscordChatReader ():
                 if words_found >= words_num - 1:
                     counter = f"{words_found}/{words_num} words found"
                     print(f"\tNew message ({counter}): {message}")
-                    new_messages.append(message)
                     keyword_found = True
                     
             if not keyword_found:
                 print(f"\tMessage skipped: {message}")
-        
-        if not new_messages:
-            print("\tNo new messages found.")
+                
+            # Get order id
+            message_parts = message.split("order id: ")
+            message_parts = message_parts[-1].split(" ")
+            order_id = message_parts[0]
+            self.order_ids.append(order_id)
             
-        return new_messages
-    
+        if not self.order_ids:
+            print("\tNo new orders found.")
+                
     def validate_login(self):
         """ Validate if user is logged in """
         
@@ -170,10 +167,13 @@ class DiscordChatReader ():
         
         print("\nWaiting for messages...")
         
+        # Reset order ids
+        self.order_ids = []
+        
         self.__load_page__()
         
-        messages_found = False
-        while not messages_found:
+        order_ids_found = False
+        while not order_ids_found:
         
             # Get and validate channels
             channels = self.__get_channels__()
@@ -181,8 +181,9 @@ class DiscordChatReader ():
 
                 # Load channel and read messages
                 self.__load_channel__(channels_name, channel_elem)
-                new_messages = self.__get_new_messages__(channels_name)
-                if new_messages:
-                    messages_found = True
-                    sleep(self.wait_time)
+                self.__save_new_order_ids__()
+                
+                # End loop if new orderids found
+                if self.order_ids:
+                    order_ids_found = True
                     break
