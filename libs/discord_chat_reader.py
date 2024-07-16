@@ -1,5 +1,3 @@
-import os
-import csv
 from time import sleep
 
 from rich import print
@@ -12,7 +10,7 @@ from selenium.webdriver.common.by import By
 class DiscordChatReader ():
     
     def __init__(self, scraper: WebScraping, server_link: str,
-                 channels_names: list, wait_time: int) -> None:
+                 channels_names: list, wait_time: int, keywords: list) -> None:
         """_summary_
 
         Args:
@@ -20,6 +18,7 @@ class DiscordChatReader ():
             channel_link (str): channel link
             channels_names (list): list of channels names
             wait_time (int): time to wait after end of loop when found new messages
+            keywords (list): list of keywords to search in messages
         """
 
         # Settigns
@@ -27,17 +26,10 @@ class DiscordChatReader ():
         self.server_link = server_link
         self.channels_names = channels_names
         self.wait_time = wait_time
+        self.keywords = keywords
         
         # Saved data
         self.saved_messages = []
-        
-        # Read keywords from csv
-        current_folder = os.path.dirname(__file__)
-        project_folder = os.path.dirname(current_folder)
-        keywords_path = os.path.join(project_folder, "keywords.csv")
-        with open(keywords_path, "r") as file:
-            keywords_reader = csv.reader(file)
-            self.keywords = list(map(lambda row: row[0].lower(), keywords_reader))
             
     def __load_page__(self):
         """ Load main page """

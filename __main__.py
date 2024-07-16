@@ -8,11 +8,14 @@ from libs.discord_chat_reader import DiscordChatReader
 from libs.web_scraping import WebScraping
 
 # Read keywords from csv
+KEYWORDS = []
 current_folder = os.path.dirname(__file__)
 csv_path = os.path.join(current_folder, "keywords.csv")
 with open(csv_path, "r") as file:
     reader = csv.reader(file)
-    KEYWORDS = list(map(lambda row: row[0], reader))
+    for line in reader:
+        if line:
+            KEYWORDS.append(line[0])
 
 # Read .env's configuration
 load_dotenv()
@@ -54,6 +57,7 @@ if __name__ == "__main__":
         server_link=DISCORD_SERVER_LINK,
         channels_names=DISCORD_CHANNELS_NAMES,
         wait_time=WAIT_TIME,
+        keywords=KEYWORDS,
     )
     
     # Validate login in factory
