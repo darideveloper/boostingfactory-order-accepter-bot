@@ -35,11 +35,6 @@ if __name__ == "__main__":
     chrome_data_folder = f"C:\\Users\\{username}\\AppData"
     chrome_data_folder += "\\Local\\Google\\Chrome\\User Data"
     
-    # Create cookies folder
-    current_folder = os.path.dirname(__file__)
-    cookies_folder = os.path.join(current_folder, "cookies")
-    os.makedirs(cookies_folder, exist_ok=True)
-    
     # Initialize chrome
     scraper = WebScraping(
         headless=HEADLESS,
