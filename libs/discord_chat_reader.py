@@ -75,9 +75,15 @@ class DiscordChatReader ():
         print(f"\nLoading channel '{channel_name}'...")
         
         # Open chat
-        channel_elem.click()
-        self.scraper.refresh_selenium()
-        sleep(1)
+        try:
+            channel_elem.click()
+            self.scraper.refresh_selenium()
+            sleep(1)
+        except Exception:
+            print(f"Error opening channel '{channel_name}'. Retrying in 5 seconds...")
+            sleep(5)
+            self.__load_page__()
+            self.__load_channel__(channel_name, channel_elem)
     
     def __get_messages__(self) -> list[str]:
         """ Read last @everyone visible messages in current channel
@@ -118,24 +124,25 @@ class DiscordChatReader ():
                 continue
             self.saved_messages.append(message)
             
-            # Validate mssage
-            keyword_found = False
-            for keyword in self.keywords:
+            # # Validate mssage
+            # keyword_found = False
+            # for keyword in self.keywords:
                 
-                # Check if almost the most of the words are in the message
-                words_num = len(keyword.split(" "))
-                words_found = 0
-                for word in keyword.split(" "):
-                    if word in message:
-                        words_found += 1
+            #     # Check if almost the most of the words are in the message
+            #     words_num = len(keyword.split(" "))
+            #     words_found = 0
+            #     for word in keyword.split(" "):
+            #         if word in message:
+            #             words_found += 1
                 
-                if words_found >= words_num - 1:
-                    counter = f"{words_found}/{words_num} words found"
-                    print(f"\tNew message ({counter}): {message}")
-                    keyword_found = True
+            #     if words_found >= words_num - 1:
+            #         counter = f"{words_found}/{words_num} words found"
+            #         print(f"\tNew message ({counter}): {message}")
+            #         keyword_found = True
                     
-            if not keyword_found:
-                print(f"\tMessage skipped: {message}")
+            # if not keyword_found:
+            #     print(f"\tMessage skipped: {message}")
+            #     continue
                 
             # Get order id
             message_parts = message.split("order id: ")
@@ -183,7 +190,6 @@ class DiscordChatReader ():
                 self.__load_channel__(channels_name, channel_elem)
                 self.__save_new_order_ids__()
                 
-                # End loop if new orderids found
-                if self.order_ids:
-                    order_ids_found = True
-                    break
+            # End loop if new orderids found
+            if self.order_ids:
+                order_ids_found = True
