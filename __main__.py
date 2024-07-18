@@ -44,7 +44,6 @@ if __name__ == "__main__":
     
     # Initialize scrapers
     factory_scraper = FactoryScraper(
-        keywords=KEYWORDS,
         scraper=scraper,
     )
     discord_chat_reader = DiscordChatReader(
@@ -64,4 +63,4 @@ if __name__ == "__main__":
         # Wait for messages
         discord_chat_reader.wait_for_messages()
         # Accept orders
-        factory_scraper.loop_orders()
+        factory_scraper.loop_orders(discord_chat_reader.order_ids)

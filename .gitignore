@@ -5,3 +5,4 @@ __pycache__/
 cookies.pkl
 .flake8
 cookies
+*.html

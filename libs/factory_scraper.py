@@ -7,21 +7,16 @@ from libs.web_scraping import WebScraping
 class FactoryScraper():
     def __init__(
         self,
-        keywords: list,
         scraper: WebScraping,
     ) -> None:
         """starts chrome and initializes the scraper
 
         args:
-            keywords: (list, str) filter titles for the targeted orders.
             scraper: (WebScraping) instance of the scraper
         """
         
         self.scraper = scraper
-
-        # Title filter
-        self.keywords = keywords
-
+        
         self.extracted_orders = {}
         
         self.home_page = "https://www.boostingfactory.com/profile"
@@ -33,8 +28,12 @@ class FactoryScraper():
         sleep(5)
         self.scraper.refresh_selenium()
 
-    def loop_orders(self) -> None:
-        """Loop through orders and stores it to be processed later."""
+    def loop_orders(self, order_ids: list) -> None:
+        """Loop through orders and stores it to be processed later.
+        
+        Args:
+            order_ids: (list) list of order ids
+        """
         
         print("\nLooping through orders...")
         
@@ -46,7 +45,7 @@ class FactoryScraper():
             "order_button": "div#availableOrders div.single-order' \
                 '.order-detail-btn .btn-for-bright",
             "order_link": "a",
-            "order_title": "h3",
+            "order_id": "h3 + span",
             "order_accept": "button.btn.order-accept-btn.btn-for-bright",
             "order_ok": ".answer-btn",
         }
@@ -56,42 +55,36 @@ class FactoryScraper():
         self.scraper.refresh_selenium(time_units=0.1)
 
         orders = self.scraper.get_elems(selectors["orders"])
+        
+        # Save page html
+        with open("orders.html", "w", encoding="utf-8") as file:
+            file.write(self.scraper.driver.page_source)
 
         orders_accepted = 0
         for order in range(0, len(orders)):
 
             # Validate order title
             selector_order = f"{selectors['orders']}:nth-child({(order + 1) * 2})"
-            selector_title = f"{selector_order} {selectors['order_title']}"
-            title = self.scraper.get_text(selector_title)
-            target = self.__filter__(title)
-
-            if not target:
+            selector_id = f"{selector_order} {selectors['order_id']}"
+            order_id_date = self.scraper.get_elem(selector_id).text
+            
+            order_id_parts = order_id_date.split(" - ")
+            order_id = order_id_parts[-1]
+            order_id = order_id.replace("#", "")
+            
+            # Validte order ids
+            if order_id not in order_ids:
                 continue
 
             # Accept order
             self.scraper.click_js(f"{selector_order} {selectors['order_accept']}")
             self.scraper.refresh_selenium()
-            self.scraper.click_js(f"{selectors['order_ok']}")
+            # self.scraper.click_js(f"{selectors['order_ok']}")
 
-            print(f"Order {title} accepted")
+            print(f"Order {order_id} accepted")
             orders_accepted += 1
 
         print(f"Total orders accepted: {orders_accepted}")
-
-    def __filter__(self, title) -> bool:
-        """Filter keywords from order titles.
-
-        Args:
-            title: (str) title keyword
-
-        Returns: boolean
-        """
-
-        for keyword in self.keywords:
-            if keyword.strip().lower() == str(title).strip().lower():
-                return True
-        return False
         
     def validate_login(self):
         """ Validate if user is logged in """

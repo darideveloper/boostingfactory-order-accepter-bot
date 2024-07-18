@@ -33,57 +33,46 @@ class DiscordChatReader ():
         self.order_ids = []
             
     def __load_page__(self):
-        """ Load main page """
+        """ Load main page in new tab """
         
+        # Create new tab
+        self.scraper.open_tab()
+        
+        # Delete current tab
+        self.scraper.close_tab()
+        
+        # Move to new tab
+        self.scraper.switch_to_tab(0)
+        
+        # Open server link
         self.scraper.set_page(self.server_link)
-        sleep(5)
+        self.scraper.zoom(50)
+        sleep(8)
         self.scraper.refresh_selenium()
             
-    def __get_channels__(self) -> dict[str, WebElement]:
-        """ Load specific server and get channels """
-        
-        selectors = {
-            "channel": '[aria-label="Canales"] > li a',
-            "channel_name": '[class^="name_"]',
-        }
-                
-        channels_data = {}
-        channels_elems = self.scraper.get_elems(selectors["channel"])
-        for channel_elem in channels_elems:
-            channel_name_elem = channel_elem.find_element(
-                By.CSS_SELECTOR,
-                selectors["channel_name"]
-            )
-            channel_name = channel_name_elem.text
-            if channel_name in self.channels_names:
-                channels_data[channel_name] = channel_elem
-                
-        if not channels_data:
-            print("Discord channels not found. Check server link and channels names.")
-            quit()
-        
-        return channels_data
-    
-    def __load_channel__(self, channel_name: str, channel_elem: WebElement):
+    def __load_channel__(self, channel_name: str):
         """ Load specific channel and scroll to the bottom
         
         Args:
             channel_name (str): channel name
-            channel_elem (WebElement): channel element
         """
         
         print(f"\nLoading channel '{channel_name}'...")
         
+        selectors = {
+            "channel": f'[data-dnd-name="{channel_name}"] a'
+        }
+        
         # Open chat
         try:
-            channel_elem.click()
+            self.scraper.click_js(selectors["channel"])
             self.scraper.refresh_selenium()
             sleep(1)
         except Exception:
-            print(f"Error opening channel '{channel_name}'. Retrying in 5 seconds...")
+            print(f"\tError opening channel '{channel_name}'. Retrying in 5 seconds...")
             sleep(5)
             self.__load_page__()
-            self.__load_channel__(channel_name, channel_elem)
+            self.__load_channel__(channel_name)
     
     def __get_messages__(self) -> list[str]:
         """ Read last @everyone visible messages in current channel
@@ -124,25 +113,24 @@ class DiscordChatReader ():
                 continue
             self.saved_messages.append(message)
             
-            # # Validate mssage
-            # keyword_found = False
-            # for keyword in self.keywords:
+            # Validate mssage
+            keyword_found = False
+            for keyword in self.keywords:
                 
-            #     # Check if almost the most of the words are in the message
-            #     words_num = len(keyword.split(" "))
-            #     words_found = 0
-            #     for word in keyword.split(" "):
-            #         if word in message:
-            #             words_found += 1
+                # Check if almost the most of the words are in the message
+                words_num = len(keyword.split(" "))
+                words_found = 0
+                for word in keyword.split(" "):
+                    if word in message:
+                        words_found += 1
                 
-            #     if words_found >= words_num - 1:
-            #         counter = f"{words_found}/{words_num} words found"
-            #         print(f"\tNew message ({counter}): {message}")
-            #         keyword_found = True
+                if words_found == words_num:
+                    print(f"\tNew message: {message}")
+                    keyword_found = True
                     
-            # if not keyword_found:
-            #     print(f"\tMessage skipped: {message}")
-            #     continue
+            if not keyword_found:
+                print(f"\tMessage skipped: {message}")
+                continue
                 
             # Get order id
             message_parts = message.split("order id: ")
@@ -183,11 +171,9 @@ class DiscordChatReader ():
         while not order_ids_found:
         
             # Get and validate channels
-            channels = self.__get_channels__()
-            for channels_name, channel_elem in channels.items():
-
+            for channels_name in self.channels_names:
                 # Load channel and read messages
-                self.__load_channel__(channels_name, channel_elem)
+                self.__load_channel__(channels_name)
                 self.__save_new_order_ids__()
                 
             # End loop if new orderids found
