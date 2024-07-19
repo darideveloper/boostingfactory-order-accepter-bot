@@ -15,7 +15,7 @@ with open(csv_path, "r") as file:
     reader = csv.reader(file)
     for line in reader:
         if line:
-            KEYWORDS.append(line[0])
+            KEYWORDS.append(line[0].lower())
 
 # Read .env's configuration
 load_dotenv()

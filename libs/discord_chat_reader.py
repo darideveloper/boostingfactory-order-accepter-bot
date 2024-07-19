@@ -3,8 +3,6 @@ from time import sleep
 from rich import print
 
 from libs.web_scraping import WebScraping
-from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.common.by import By
 
 
 class DiscordChatReader ():
@@ -127,7 +125,8 @@ class DiscordChatReader ():
                 if words_found == words_num:
                     print(f"\tNew message: {message}")
                     keyword_found = True
-                    
+                    break
+            
             if not keyword_found:
                 print(f"\tMessage skipped: {message}")
                 continue
