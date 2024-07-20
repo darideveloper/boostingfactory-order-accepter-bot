@@ -6,3 +6,4 @@ cookies.pkl
 .flake8
 cookies
 *.html
+*.png

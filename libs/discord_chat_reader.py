@@ -80,13 +80,19 @@ class DiscordChatReader ():
         """
         
         selectors = {
-            "message": '[data-list-id="chat-messages"] > li h3 + div',
+            "message": '[data-list-id="chat-messages"] > '
+                       'li:nth-last-child(-n+8) h3 + div',
         }
+        self.scraper.refresh_selenium()
         
-        # Get last 5 messages texts
-        messages = self.scraper.get_texts(selectors["message"])
-        messages = messages[-5:]
-        
+        # Get messages with js script
+        code = f"""
+            var messages = document.querySelectorAll('{selectors["message"]}')
+            var messagesText = Array.from(messages).map(message => message.textContent);
+            return messagesText;
+        """
+        messages = self.scraper.driver.execute_script(code)
+
         # Get only @everyone messages and remove new lines
         messages = list(filter(lambda message: "@everyone" in message, messages))
         messages = list(map(
@@ -128,7 +134,6 @@ class DiscordChatReader ():
                     break
             
             if not keyword_found:
-                print(f"\tMessage skipped: {message}")
                 continue
                 
             # Get order id

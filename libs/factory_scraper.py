@@ -49,6 +49,9 @@ class FactoryScraper():
             "order_accept": "button.btn.order-accept-btn.btn-for-bright",
             "order_ok": ".answer-btn",
         }
+        
+        # Set zoom to 50%
+        self.scraper.zoom(50)
 
         # Move to orders tab
         self.scraper.click_js(selectors["orders_tab"])
@@ -59,6 +62,9 @@ class FactoryScraper():
         # Save page html
         with open("orders.html", "w", encoding="utf-8") as file:
             file.write(self.scraper.driver.page_source)
+            
+        # Save page screenshot
+        self.scraper.screenshot("orders.png")
 
         orders_accepted = 0
         for order in range(0, len(orders)):
