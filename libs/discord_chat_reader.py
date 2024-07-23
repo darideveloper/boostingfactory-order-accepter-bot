@@ -64,7 +64,6 @@ class DiscordChatReader ():
         # Open chat
         try:
             self.scraper.click_js(selectors["channel"])
-            self.scraper.refresh_selenium()
             sleep(1)
         except Exception:
             print(f"\tError opening channel '{channel_name}'. Retrying in 5 seconds...")
@@ -180,6 +179,7 @@ class DiscordChatReader ():
                 self.__load_channel__(channels_name)
                 self.__save_new_order_ids__()
                 
-            # End loop if new orderids found
-            if self.order_ids:
-                order_ids_found = True
+                # End loop if new orderids found
+                if self.order_ids:
+                    order_ids_found = True
+                    break
