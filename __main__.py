@@ -1,5 +1,6 @@
 import os
 import csv
+from time import sleep
 
 from dotenv import load_dotenv
 
@@ -56,11 +57,14 @@ if __name__ == "__main__":
     
     # Validate login in factory
     factory_scraper.validate_login()
+    
+    # Validate login in discord
     discord_chat_reader.validate_login()
     
     # Main loop
     while True:
         # Wait for messages
         discord_chat_reader.wait_for_messages()
+        
         # Accept orders
         factory_scraper.loop_orders(discord_chat_reader.order_ids)
