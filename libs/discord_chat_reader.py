@@ -8,14 +8,13 @@ from libs.web_scraping import WebScraping
 class DiscordChatReader ():
     
     def __init__(self, scraper: WebScraping, server_link: str,
-                 channels_names: list, wait_time: int, keywords: list) -> None:
+                 channels_names: list, keywords: list) -> None:
         """_summary_
 
         Args:
             scraper (WebScraping): scraper instance
             channel_link (str): channel link
             channels_names (list): list of channels names
-            wait_time (int): time to wait after end of loop when found new messages
             keywords (list): list of keywords to search in messages
         """
 
@@ -23,7 +22,6 @@ class DiscordChatReader ():
         self.scraper = scraper
         self.server_link = server_link
         self.channels_names = channels_names
-        self.wait_time = wait_time
         self.keywords = keywords
         
         # Saved data
@@ -31,22 +29,23 @@ class DiscordChatReader ():
         self.order_ids = []
             
     def __load_page__(self):
-        """ Load main page in new tab """
+        """ Load main page in new tab
+        """
         
-        # Create new tab
-        self.scraper.open_tab()
-        
-        # Delete current tab
-        self.scraper.close_tab()
-        
-        # Move to new tab
+        # Open page in new tab
+        tabs_num = self.scraper.driver.window_handles
+        if len(tabs_num) > 1:
+            self.scraper.switch_to_tab(1)
+            self.scraper.close_tab()
         self.scraper.switch_to_tab(0)
-        
+        self.scraper.open_tab()
+        self.scraper.switch_to_tab(1)
+            
         # Open server link
         self.scraper.set_page(self.server_link)
         self.scraper.zoom(50)
         sleep(8)
-        self.scraper.refresh_selenium()
+        self.scraper.refresh_selenium(back_tab=1)
             
     def __load_channel__(self, channel_name: str):
         """ Load specific channel and scroll to the bottom
@@ -63,7 +62,9 @@ class DiscordChatReader ():
         
         # Open chat
         try:
-            self.scraper.click_js(selectors["channel"])
+            # Click using js
+            script = f"""document.querySelector('{selectors["channel"]}').click();"""
+            self.scraper.driver.execute_script(script)
             sleep(1)
         except Exception:
             print(f"\tError opening channel '{channel_name}'. Retrying in 5 seconds...")
@@ -82,7 +83,7 @@ class DiscordChatReader ():
             "message": '[data-list-id="chat-messages"] > '
                        'li:nth-last-child(-n+8) h3 + div',
         }
-        self.scraper.refresh_selenium()
+        self.scraper.refresh_selenium(back_tab=1)
         
         # Get messages with js script
         code = f"""
@@ -157,7 +158,7 @@ class DiscordChatReader ():
             
         print("Logged in Discord.")
         sleep(5)
-        self.scraper.refresh_selenium()
+        self.scraper.refresh_selenium(back_tab=1)
             
     def wait_for_messages(self):
         """ Wait for new messages, valdiate them and return
@@ -181,5 +182,11 @@ class DiscordChatReader ():
                 
                 # End loop if new orderids found
                 if self.order_ids:
+                    
+                    # Close discord tab and return to boostingfactory
+                    self.scraper.close_tab()
+                    self.scraper.switch_to_tab(0)
+                    
+                    # Update stus and end loop
                     order_ids_found = True
                     break

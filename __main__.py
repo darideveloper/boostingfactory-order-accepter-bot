@@ -23,7 +23,6 @@ load_dotenv()
 HEADLESS = os.getenv("SHOW_BROWSER") != "True"
 USERNAME = os.getenv("USERNAME_SCRAPER")
 PASSWORD = os.getenv("PASSWORD")
-WAIT_TIME = int(os.getenv("WAIT_TIME"))
 DISCORD_CHANNELS_NAMES = os.getenv("DISCORD_CHANNELS_NAMES").split(",")
 DISCORD_SERVER_LINK = os.getenv("DISCORD_SERVER_LINK")
 
@@ -51,13 +50,12 @@ if __name__ == "__main__":
         scraper=scraper,
         server_link=DISCORD_SERVER_LINK,
         channels_names=DISCORD_CHANNELS_NAMES,
-        wait_time=WAIT_TIME,
         keywords=KEYWORDS,
     )
-    
+      
     # Validate login in factory
     factory_scraper.validate_login()
-    
+  
     # Validate login in discord
     discord_chat_reader.validate_login()
     

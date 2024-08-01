@@ -25,6 +25,7 @@ class FactoryScraper():
         """ Load main page """
         
         self.scraper.set_page(self.home_page)
+        self.scraper.zoom(50)
         sleep(5)
         self.scraper.refresh_selenium()
 
@@ -36,8 +37,6 @@ class FactoryScraper():
         """
         
         print("\nLooping through orders...")
-        
-        self.__load_page__()
 
         selectors = {
             "orders_tab": ".orders .nav.nav-tabs > li:first-child a",
@@ -49,9 +48,6 @@ class FactoryScraper():
             "order_accept": "button.btn.order-accept-btn.btn-for-bright",
             "order_ok": ".answer-btn",
         }
-        
-        # Set zoom to 50%
-        self.scraper.zoom(50)
 
         # Move to orders tab
         self.scraper.click_js(selectors["orders_tab"])
@@ -108,3 +104,7 @@ class FactoryScraper():
         print("Logged in Boostingfactory.")
         sleep(5)
         self.scraper.refresh_selenium()
+        
+        # Open new tab
+        self.scraper.open_tab()
+        self.scraper.switch_to_tab(1)
