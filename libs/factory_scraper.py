@@ -51,10 +51,14 @@ class FactoryScraper():
 
         # Move to orders tab
         self.scraper.click_js(selectors["orders_tab"])
-        sleep(2)
-        self.scraper.refresh_selenium()
-
-        orders = self.scraper.get_elems(selectors["orders"])
+        self.scraper.click_js(selectors["orders_tab"])
+        
+        # Refresh fo new orders
+        for _ in range(10):
+            self.scraper.refresh_selenium(time_units=0.1)
+            orders = self.scraper.get_elems(selectors["orders"])
+            if orders:
+                break
         
         # Save page html
         with open("orders.html", "w", encoding="utf-8") as file:
@@ -75,7 +79,7 @@ class FactoryScraper():
             order_id = order_id_parts[-1]
             order_id = order_id.replace("#", "").strip()
             
-            # DEBUG: Validte order ids
+            # Validte order ids
             if order_id not in order_ids:
                 print(f"Order {order_id} not in valid order ids")
                 continue
